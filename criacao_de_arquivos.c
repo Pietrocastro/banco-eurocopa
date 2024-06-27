@@ -85,7 +85,7 @@ void criar_jogador(char *linha, const char *selecao) {
 
     jogador.idade = idade;
 
-    jogador_para_bin(jogador);
+    
 }
 
 void criar_arquivos(char *nome_arq) {
