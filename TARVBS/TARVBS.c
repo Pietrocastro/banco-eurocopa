@@ -172,6 +172,69 @@ void divisao(FILE *f_x, int i, FILE *f_y, int t) {
     freeABS(z, t);
 }
 
+/*void divisao(FILE *f_x, int i, FILE *f_y, int t) {
+    TARVBS *x = TARVBS_nova(t);
+    TARVBS *y = TARVBS_nova(t);
+    fseek(f_x, 0, SEEK_SET);
+    fread(x, sizeof(TARVBS), 1, f_x);
+    fseek(f_y, 0, SEEK_SET);
+    fread(y, sizeof(TARVBS), 1, f_y);
+
+    FILE *f_z = TARVBS_cria(t);  // Cria o nó z
+    TARVBS *z = TARVBS_nova(t);
+    fread(z, sizeof(TARVBS), 1, f_z);
+
+    z->nchaves = t - 1;  // Define o número máximo de chaves em z
+    z->folha = y->folha;  // Z recebe o mesmo tipo de folha de y
+
+    // Move as chaves maiores para z
+    for (int j = 0; j < t - 1; j++) {
+        z->chave[j] = y->chave[j + t];
+    }
+
+    // Se y tem filhos, transfere parte dos filhos para z
+    if (!y->folha) {
+        for (int j = 0; j < t; j++) {
+            strcpy(z->filho[j], y->filho[j + t]);
+            y->filho[j + t] = NULL;
+        }
+    }
+
+    // Reduz o número de chaves em y
+    y->nchaves = t - 1;
+
+    // Move os filhos de x para abrir espaço para um novo filho
+    for (int j = x->nchaves; j >= i; j--) {
+        strcpy(x->filho[j + 1], x->filho[j]);
+    }
+
+    // Conecta z ao pai x
+    strcpy(x->filho[i], z->narq);
+
+    // Move as chaves de x para abrir espaço para uma nova chave
+    for (int j = x->nchaves - 1; j >= i - 1; j--) {
+        x->chave[j + 1] = x->chave[j];
+    }
+
+    // Insere a chave mediana de y em x
+    x->chave[i - 1] = y->chave[t - 1];
+    x->nchaves++;
+
+    // Sobrescreve os nós modificados nos arquivos correspondentes
+    sobrescrever(f_x, x);
+    sobrescrever(f_y, y);
+    sobrescrever(f_z, z);
+
+    // Libera a memória alocada
+    freeABS(x, t);
+    freeABS(y, t);
+    freeABS(z, t);
+
+    // Fecha os arquivos abertos
+    fclose(f_z);
+}
+*/
+
 
 void insere_nao_completo(FILE *f_x, Jogador jogador, int t) {
     TARVBS *x = TARVBS_nova(t);
