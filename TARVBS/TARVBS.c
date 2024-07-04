@@ -12,157 +12,318 @@ char * id() {
     return id_str;
 }
 
-FILE * TARVBS_cria(char *nome_arq, int t){
-    FILE *novo = fopen(strcat(nome_arq, id()), "wb");
-
-    TARVBS *a = (TARVBS *) malloc(sizeof(TARVBS));
-    a -> nchaves = 0;
-    a -> chave = (Jogador*) malloc(sizeof(Jogador *)*((t*2)-1));
-    a -> folha = 1;
-    a -> filho = (TARVBS**) malloc(sizeof(TARVBS *) * t*2);
-    for (int i = 0; i < (t*2); i++) a -> filho[i] = NULL;
-
-    fwrite(a, sizeof(TARVBS), 1, novo);
-    free(a);
-    return novo;
+void sobrescrever(FILE *f, TARVBS *a) {
+    fseek(f, 0, SEEK_SET);  // Posiciona no início do arquivo
+    fwrite(a, sizeof(TARVBS), 1, f);  // Escreve a estrutura TARVBS no arquivo
 }
 
-/*
-void TARVBS_libera(char *nome_raiz){
-TARVBS *a = (TARVBS *) malloc(sizeof(TARVBS));
-FILE *f = 
-fread(a, sizeof(TARVBS), 1, f);
-if(a){
-if(!a->folha){
-int i;
-for(i = 0; i <= a->nchaves; i++) TARVBS_Libera(a->filho[i]);
-}
-free(a->chave);
-free(a->filho);
-free(a);
-return NULL;
-}
-} 
-*/
-
-FILE *TARVBS_busca(char *nome_raiz, int id) {
-    FILE *f = fopen(nome_raiz, "rb");
-    TARVBS * aux = (TARVBS *) malloc(sizeof(TARVBS));
-    fread(aux, sizeof(TARVBS), 1, f);
-
-    if (!aux) return NULL;
-    int i = 0;
-    while (i < aux -> nchaves && id > aux -> chave[i].id) i++;
-    if (i < aux -> nchaves && id == aux -> chave[i].id) free(aux); return f;
-    if (aux -> folha) free(aux); return NULL;
-    char * nome_filho = strcpy(nome_filho, aux -> filho[i]);
-    free(aux);
-    return TARVBS_busca(nome_filho, id);
-}
-
-/*
-    for (int i = 0; i < aux -> nchaves; i++) if (aux -> chave[i].id == id) return f;
-    return NULL;
-*/
-
-
-
-FILE * TARVBS_insere(char *nome_raiz, Jogador jogador, int t){
-    FILE *f = fopen(nome_raiz, "rb");
-    TARVBS *a = (TARVBS *) malloc(sizeof(TARVBS));
-
-    if (TARVBS_busca(nome_raiz, jogador.id)) return f;
-
-    if (!a){
-        a = TARVBS_cria(nome_raiz, t);
-        a -> chave[0] = jogador;
-        a -> nchaves = 1;
-        fwrite(a, sizeof(jogador), 1, f);
-        free(a);
-        return f;
+TARVBS* TARVBS_nova(int t) {
+    TARVBS *nova = (TARVBS *)malloc(sizeof(TARVBS));
+    if (!nova) {
+        perror("Erro ao alocar memória para TARVBS");
+        return NULL;
     }
 
-    if (a -> nchaves == (2 * t) - 1){
-        FILE *aux_arq;
-        TARVBS *aux = TARVBS_cria("arquivo", t);
-        aux -> nchaves = 0;
-        aux -> folha = 0;
-        aux -> filho[0] = a;
-        fwrite(aux, sizeof(TARVBS), 1, aux_arq);
-        divisao(aux_arq, 1, a, t);
-        insere_nao_completo(aux_arq, jogador, t);
-        free(a);
-        return aux;
+    nova->chave = (Jogador *)malloc(sizeof(Jogador) * (2 * t - 1));
+    if (!nova->chave) {
+        perror("Erro ao alocar memória para chaves de TARVBS");
+        free(nova);
+        return NULL;
     }
-    insere_nao_completo(f, jogador.id, t);
-    free(a);
+
+    nova->filho = (char **)malloc(sizeof(char *) * (2 * t));
+    if (!nova->filho) {
+        perror("Erro ao alocar memória para filhos de TARVBS");
+        free(nova->chave);
+        free(nova);
+        return NULL;
+    }
+
+    nova->nchaves = 0;
+    nova->folha = 1;
+
+    return nova;
+}
+
+void freeABS(TARVBS *a, int t) {
+    if (a != NULL) {
+        if (!a->folha) {
+            for (int i = 0; i < 2 * t; i++) {
+                if (a->filho[i] != NULL) {
+                    free(a->filho[i]);
+                }
+            }
+            free(a->filho);
+        }
+        free(a->chave);
+        free(a);
+    }
+}
+
+FILE * TARVBS_cria(int t) { 
+    char nome[21] = "arqvs/arquivo";
+    strcat(nome, id());
+    strcat(nome, ".bin");
+    FILE *f = fopen(nome, "wb");
+    TARVBS *a = TARVBS_nova(t);
+    strcpy(a -> narq, nome);
+    fwrite(a, sizeof(TARVBS), 1, f);
+    fclose(f);
+    f = fopen(nome, "rb+");
     return f;
 }
 
-void TARVBS_retira(char *nome_raiz, Jogador jogador, int t);
-/*
-TARVB *Divisao(TARVB *x, int i, TARVB* y, int t){
-    TARVB *z=TARVB_Cria(t);
-    z->nchaves= t - 1;
-    z->folha = y->folha;
-    int j;
-    for(j=0;j<t-1;j++) z->chave[j] = y->chave[j+t];
-    if(!y->folha){
-        for(j=0;j<t;j++){
-            z->filho[j] = y->filho[j+t];
-            y->filho[j+t] = NULL;
-        }
+char *TARVBS_busca(char *nome_raiz, int id, int t) {
+    FILE *f = fopen(nome_raiz, "rb");
+    if (!f) {
+        perror("Erro ao abrir arquivo");
+        return NULL;
     }
-    y->nchaves = t-1;
-    for(j=x->nchaves; j>=i; j--) x->filho[j+1]=x->filho[j];
-    x->filho[i] = z;
-    for(j=x->nchaves; j>=i; j--) x->chave[j] = x->chave[j-1];
-    x->chave[i-1] = y->chave[t-1];
+
+    TARVBS *aux = TARVBS_nova(t);
+    if (!aux) {
+        fclose(f);
+        perror("Erro ao alocar memória para TARVBS");
+        return NULL;
+    }
+
+    fread(aux, sizeof(TARVBS), 1, f);
+    fclose(f);
+
+    int i = 0;
+    while (i < aux->nchaves && id > aux->chave[i].id) {
+        i++;
+    }
+
+    if (i < aux->nchaves && id == aux->chave[i].id) {
+        char *nome_arquivo = strdup(aux->narq);
+        freeABS(aux, t);
+        return nome_arquivo;
+    }
+
+    if (aux->folha) {
+        freeABS(aux, t);
+        return NULL;
+    }
+
+    char *nome_filho = strdup(aux->filho[i]);
+    freeABS(aux, t);
+    return TARVBS_busca(nome_filho, id, t);
+}
+
+void divisao(FILE *f_x, int i, FILE *f_y, int t) {
+    TARVBS *x = TARVBS_nova(t);
+    TARVBS *y = TARVBS_nova(t);
+    fseek(f_x, 0, SEEK_SET);
+    fread(x, sizeof(TARVBS), 1, f_x);
+    fseek(f_y, 0, SEEK_SET);
+    fread(y, sizeof(TARVBS), 1, f_y);
+
+    FILE *f_z = TARVBS_cria(t);
+    TARVBS *z = TARVBS_nova(t);
+    fread(z, sizeof(TARVBS), 1, f_z);
+
+
+    z->nchaves = t - 1;
+    z->folha = y->folha;
+    for (int j = 0; j < t - 1; j++) {
+        z->chave[j] = y->chave[j + t]; // passa as chaves maiores de y para z
+    }
+    if (!y->folha) {
+        for (int j = 0; j < t; j++) {
+            strcpy(z->filho[j], y->filho[j + t]);
+            y->filho[j + t] = NULL;
+        } // se y tiver filhos, passa os maiores para z
+    }
+    y->nchaves = t - 1;
+
+    for (int j = x->nchaves; j >= i; j--) {
+        strcpy(x->filho[j + 1], x->filho[j]);
+    } // atualiza as chaves de x
+
+    sobrescrever(f_z, z);
+    fclose(f_z);
+    
+    char z_narq[21];
+    strcpy(z_narq, z->narq);
+    strcpy(x->filho[i], z_narq);  // atualiza o nome dos filhos de x
+
+    for (int j = x->nchaves; j >= i; j--) {
+        x->chave[j] = x->chave[j - 1];
+    }
+    x->chave[i - 1] = y->chave[t - 1];
     x->nchaves++;
-    return x;
+
+    sobrescrever(f_x, x);
+    sobrescrever(f_y, y);
+
+    freeABS(x, t);
+    freeABS(y, t);
+    freeABS(z, t);
 }
 
 
-TARVB *Insere_Nao_Completo(TARVB *x, int k, int t){
-    int i = x->nchaves-1;
-    if(x->folha){
-        while((i>=0) && (k<x->chave[i])){
-            x->chave[i+1] = x->chave[i];
+void insere_nao_completo(FILE *f_x, Jogador jogador, int t) {
+    TARVBS *x = TARVBS_nova(t);
+    fseek(f_x, 0, SEEK_SET);
+    fread(x, sizeof(TARVBS), 1, f_x);
+
+    int i = x->nchaves - 1;
+    if (x->folha) {
+        while (i >= 0 && jogador.id < x->chave[i].id) {
+            x->chave[i + 1] = x->chave[i];
             i--;
         }
-        x->chave[i+1] = k;
+        x->chave[i + 1] = jogador;
         x->nchaves++;
-        return x;
+        sobrescrever(f_x, x);
+        freeABS(x, t);
+        return;
     }
-    while((i>=0) && (k<x->chave[i])) i--;
+
+    while (i >= 0 && jogador.id < x->chave[i].id) i--;
     i++;
-    if(x->filho[i]->nchaves == ((2*t)-1)){
-        x = Divisao(x, (i+1), x->filho[i], t);
-        if(k>x->chave[i]) i++;
+    FILE *ptr = fopen(x->filho[i], "rb+");
+    if (!ptr) {
+        perror("Erro ao abrir arquivo de filho");
+        freeABS(x, t);
+        return;
     }
-    x->filho[i] = Insere_Nao_Completo(x->filho[i], k, t);
-    return x;
+
+    TARVBS *aux = TARVBS_nova(t);
+    fread(aux, sizeof(TARVBS), 1, ptr);
+    if (aux->nchaves == (2 * t) - 1) {
+        fclose(ptr);
+        divisao(f_x, i + 1, ptr, t);
+        fseek(f_x, 0, SEEK_SET);
+        fread(x, sizeof(TARVBS), 1, f_x);
+        if (jogador.id > x->chave[i].id) i++;
+    }
+
+    insere_nao_completo(ptr, jogador, t);
+    fclose(ptr);
+
+    sobrescrever(f_x, x);
+    freeABS(x, t);
+    freeABS(aux, t);
 }
 
 
-TARVB *TARVB_Insere(TARVB *T, int k, int t){
-    if(TARVB_Busca(T,k)) return T;
-    if(!T){
-        T=TARVB_Cria(t);
-        T->chave[0] = k;
-        T->nchaves=1;
-        return T;
+void TARVBS_insere(char *nome_raiz, Jogador jogador, int t) {
+    if (TARVBS_busca(nome_raiz, jogador.id, t)) return;
+    
+    FILE *f = fopen(nome_raiz, "rb+");
+    
+    if (!f) {
+        f = TARVBS_cria(t);
     }
-    if(T->nchaves == (2*t)-1){
-        TARVB *S = TARVB_Cria(t);
-        S->nchaves=0;
-        S->folha = 0;
-        S->filho[0] = T;
-        S = Divisao(S,1,T,t);
-        S = Insere_Nao_Completo(S,k,t);
-        return S;
+
+    TARVBS *a = TARVBS_nova(t);
+    fseek(f, 0, SEEK_SET);
+    fread(a, sizeof(TARVBS), 1, f);
+
+    if (a->nchaves == 0) { // Verificar se a árvore está vazia
+        strcpy(a -> narq, nome_raiz);
+        a->chave[0] = jogador;
+        a->nchaves = 1;
+        sobrescrever(f, a);
+        freeABS(a, t);
+        fclose(f);
+        return;
     }
-    T = Insere_Nao_Completo(T,k,t);
-    return T;
+
+    //até aqui ta funcionando
+
+    TARVBS *s = TARVBS_nova(t);
+    FILE *f_s;
+    if (a->nchaves == (2 * t) - 1) { // Se a raiz estiver cheia
+        f_s = TARVBS_cria(t);
+        fread(s, sizeof(TARVBS), 1, f_s);
+
+        s->nchaves = 0;
+        s->folha = false;
+        strcpy(s->filho[0], a->narq);
+        
+        sobrescrever(f_s, s);
+
+        divisao(f_s, 1, f, t);
+        insere_nao_completo(f_s, jogador, t);
+
+        freeABS(a, t);
+        freeABS(s, t);
+        fclose(f_s);
+        fclose(f);
+        return;
+    }
+    freeABS(s, t);
+
+    insere_nao_completo(f, jogador, t);
+    sobrescrever(f, a);
+    freeABS(a, t);
+    fclose(f);
+    return;
 }
+
+/*
+insere:
+    1. se tiver na arvore retorna a raiz CHECK
+    2. se não existir arvore cria um nó folha CHECK
+    3. se tiver o maximo de chaves, cria um nó secundário que vira pai do nó com maximo de chaves CHECK
+    4. chama a função divisao para dividir o nó com maximo de chaves CHECK
+    5. chama a insere não completo CHECK
+
+
+divisão
+    1. cria um nó z que vai ficar na mesma altura do nó y CHECK
+    2. divide y em 2 partes, uma parte continua em y e outra fica em z (parte maior em z) CHECK
+    3. se y tiver filhos, passa parte dos filhos para z CHECK
+    4. ajusta os filhos do que subiu CHECK
+    5. ajusta as chaves do que subiu CHECK
+
+
+insere nao completo
+    1. se x for folha vai percorrendo até achar o lugar certo pra inserir, depois ajusta as outras chaves CHECK
+    2. acha o filho que tem que descer para inserir, se o filho tiver o maximo de chaves, divide e sobe a chave do meio para a atual
+    3. chama recursivo para o nó filho que tem que descer
+
 */
+
+
+void TARVBS_retira(char *nome_raiz, Jogador jogador, int t);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

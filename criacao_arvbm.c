@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <string.h>
-#include "TARVBM/TARVBM.h"
+#include "TARVBS/TARVBS.h"
 
-TARVBM * criar_arvore(){
-    TARVBM * arvore = TARVBM_inicializa();
+TARVBS * criar_arvore(){
+    TARVBS * arvore = TARVBM_inicializa();
 
     for (int i = 1; i >= 284; i++){
         char nome_arq[10];

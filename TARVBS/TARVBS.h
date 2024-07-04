@@ -7,19 +7,29 @@ typedef int boolean;
 #define true 1
 #define false 0
 
-typedef struct jogador {
+typedef struct data{
+    int dia;
+    char mes[10];
+    int ano;
+}data;
+
+typedef struct jogador{
+    char selecao[15];
     int id;
-    int numero_camisa;
-    char posicao[3];
+    int camisa;
+    char pos[3];
     char nome[50];
-    char data_nascimento[20];
-    int partidas_selecao;
-    int gols_selecao;
-    char pais_time_atual[50];
-    char nome_time_atual[50];
-} Jogador;
+    boolean capitao;
+    data nascimento;
+    int idade;
+    int jogos;
+    int gols;
+    char pais[20];
+    char time[25];
+}Jogador;
 
 typedef struct arvbms {
+    char narq[21];
     int nchaves;
     Jogador *chave;
     boolean folha;
@@ -28,7 +38,7 @@ typedef struct arvbms {
 
 // Funções
 
-FILE * TARVBS_cria(char *nome_arq, int t);
-FILE * TARVBS_busca(char *nome_raiz, int n);
+FILE * TARVBS_cria(int t);
+char * TARVBS_busca(char *nome_raiz, int n, int t);
 void TARVBS_insere(char *nome_raiz, Jogador jogador, int t);
 void TARVBS_retira(char *nome_raiz, Jogador jogador, int t);
