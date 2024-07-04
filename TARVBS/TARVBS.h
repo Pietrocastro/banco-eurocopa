@@ -40,5 +40,5 @@ typedef struct arvbms {
 
 FILE * TARVBS_cria(int t);
 char * TARVBS_busca(char *nome_raiz, int n, int t);
-void TARVBS_insere(char *nome_raiz, Jogador jogador, int t);
-void TARVBS_retira(char *nome_raiz, Jogador jogador, int t);
+void TARVBS_insere(Jogador jogador, int t);
+void TARVBS_retira(Jogador jogador, int t);

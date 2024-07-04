@@ -12,6 +12,16 @@ char * id() {
     return id_str;
 }
 
+char *raiz(char *nova){
+    static char raiz[21];
+
+    if (strcmp(nova, "") == 0) return raiz;
+    else {
+        strcpy(raiz, nova);
+        return raiz;
+    }
+}
+
 void sobrescrever(FILE *f, TARVBS *a) {
     fseek(f, 0, SEEK_SET);  // Posiciona no início do arquivo
     fwrite(a, sizeof(TARVBS), 1, f);  // Escreve a estrutura TARVBS no arquivo
@@ -209,10 +219,10 @@ void insere_nao_completo(FILE *f_x, Jogador jogador, int t) {
 }
 
 
-void TARVBS_insere(char *nome_raiz, Jogador jogador, int t) {
-    if (TARVBS_busca(nome_raiz, jogador.id, t)) return;
+void TARVBS_insere(Jogador jogador, int t) {
+    if (TARVBS_busca(raiz(""), jogador.id, t)) return;
     
-    FILE *f = fopen(nome_raiz, "rb+");
+    FILE *f = fopen(raiz(""), "rb+");
     
     if (!f) {
         f = TARVBS_cria(t);
@@ -223,7 +233,7 @@ void TARVBS_insere(char *nome_raiz, Jogador jogador, int t) {
     fread(a, sizeof(TARVBS), 1, f);
 
     if (a->nchaves == 0) { // Verificar se a árvore está vazia
-        strcpy(a -> narq, nome_raiz);
+        strcpy(a -> narq, raiz(""));
         a->chave[0] = jogador;
         a->nchaves = 1;
         sobrescrever(f, a);
@@ -289,7 +299,7 @@ insere nao completo
 */
 
 
-void TARVBS_retira(char *nome_raiz, Jogador jogador, int t);
+void TARVBS_retira(Jogador jogador, int t);
 
 
 

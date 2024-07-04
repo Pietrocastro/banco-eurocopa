@@ -122,7 +122,7 @@ Jogador jogador5 = {
 
     // PROBLEMA NA INSERÇÃO DO 3º JOGADOR EM DIANTE
     // O 3º JOGADOR SOBREESCREVE O 2º PRA SEMPRE
-    TARVBS_insere("arqvs/arquivo1.bin", jogador1, 3);
+    TARVBS_insere(jogador1, 3);
 
     TARVBS *A = TARVBS_nova(3);
     fread(A, sizeof(TARVBS), 1, f);
